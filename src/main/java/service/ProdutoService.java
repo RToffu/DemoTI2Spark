@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-import dao.ProdutoDAO;
+import dao.DAO;
 import model.Produto;
 import spark.Request;
 import spark.Response;
@@ -12,14 +12,10 @@ import spark.Response;
 
 public class ProdutoService {
 
-	private ProdutoDAO produtoDAO;
+	private static DAO dao  = new DAO();
 
 	public ProdutoService() {
-		try {
-			produtoDAO = new ProdutoDAO("produto.dat");
-		} catch (IOException e) {
-			System.out.println(e.getMessage());
-		}
+		dao.conectar();
 	}
 
 	public Object add(Request request, Response response) {
@@ -28,11 +24,11 @@ public class ProdutoService {
 		String category = request.queryParams("category");
 		int quantidade = Integer.parseInt(request.queryParams("quantidade"));
 
-		int id = produtoDAO.getMaxId() + 1;
+		int id = dao.getMaxId() + 1;
 
 		Produto produto = new Produto(id, name, category, quantidade);
 
-		produtoDAO.add(produto);
+		dao.inserirProduto(produto);
 
 		response.status(201); // 201 Created
 		return id;
@@ -41,7 +37,7 @@ public class ProdutoService {
 	public Object get(Request request, Response response) {
 		int id = Integer.parseInt(request.params(":id"));
 		
-		Produto produto = (Produto) produtoDAO.get(id);
+		Produto produto = dao.get(id);
 		
 		if (produto != null) {
     	    response.header("Content-Type", "application/xml");
@@ -63,7 +59,7 @@ public class ProdutoService {
 	public Object update(Request request, Response response) {
         int id = Integer.parseInt(request.params(":id"));
         
-		Produto produto = (Produto) produtoDAO.get(id);
+		Produto produto = (Produto) dao.get(id);
 		produto.toString();
         if (produto != null) {
         	produto.setDevice_name(request.queryParams("name"));
@@ -71,7 +67,7 @@ public class ProdutoService {
         	produto.setQnt(Integer.parseInt(request.queryParams("quantidade")));
         	
 
-        	produtoDAO.update(produto);
+        	//dao.atualizarProduto(produto.getId());
         	
             return id;
         } else {
@@ -84,11 +80,11 @@ public class ProdutoService {
 	public Object remove(Request request, Response response) {
         int id = Integer.parseInt(request.params(":id"));
 
-        Produto produto = (Produto) produtoDAO.get(id);
+        Produto produto = (Produto) dao.get(id);
 
         if (produto != null) {
 
-            produtoDAO.remove(produto);
+            dao.excluirProduto(produto.getId());
 
             response.status(200); // success
         	return id;
@@ -100,7 +96,7 @@ public class ProdutoService {
 
 	public Object getAll(Request request, Response response) {
 		StringBuffer returnValue = new StringBuffer("<produtos type=\"array\">");
-		for (Produto produto : produtoDAO.getAll()) {
+		for (Produto produto : dao.getProdutos()) {
 			returnValue.append("\n<produto>\n" + 
             		"\t<id>" + produto.getId() + "</id>\n" +
             		"\t<name>" + produto.getDevice_name() + "</name>\n" +

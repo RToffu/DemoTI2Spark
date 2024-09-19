@@ -9,8 +9,8 @@ public class Principal {
 	private static ProdutoService produtoService = new ProdutoService();
 	
     public static void main(String[] args) {
-        port(6789);
-
+       port(6789);
+       //port(8081);
         post("/produto", (request, response) -> produtoService.add(request, response));
 
         get("/produto/:id", (request, response) -> produtoService.get(request, response));
